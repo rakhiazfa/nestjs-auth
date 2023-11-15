@@ -120,6 +120,7 @@ export class UserService {
         name: updateUserDto.name,
         email: updateUserDto.email,
         isActive: updateUserDto.isActive,
+        updatedAt: new Date().toISOString(),
       },
     });
 
