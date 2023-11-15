@@ -1,17 +1,12 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '@/prisma/prisma.service';
 import bcrypt from 'bcrypt';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Prisma } from '@prisma/client';
 import { PaginatorTypes, paginator } from '@nodeteam/nestjs-prisma-pagination';
 import { User } from './entities/user.entity';
+import { handlePrismaClientKnownRequestError } from '@/common/helpers/handle-prisma-error';
 
 const paginate: PaginatorTypes.PaginateFunction = paginator({ perPage: 10 });
 
@@ -62,7 +57,7 @@ export class UserService {
 
       return user;
     } catch (error) {
-      this.handlePrismaClientKnownRequestError(error);
+      handlePrismaClientKnownRequestError(error);
     }
   }
 
@@ -139,7 +134,7 @@ export class UserService {
 
       return user;
     } catch (error) {
-      this.handlePrismaClientKnownRequestError(error);
+      handlePrismaClientKnownRequestError(error);
     }
   }
 
@@ -155,22 +150,7 @@ export class UserService {
 
       return user;
     } catch (error) {
-      this.handlePrismaClientKnownRequestError(error);
-    }
-  }
-
-  private handlePrismaClientKnownRequestError(error) {
-    if (error instanceof PrismaClientKnownRequestError) {
-      switch (error.code) {
-        case 'P2002':
-          throw new BadRequestException('Email already exists.');
-        case 'P2025':
-          throw new NotFoundException(error.meta.cause);
-        default:
-          throw new InternalServerErrorException(error);
-      }
-    } else {
-      throw new InternalServerErrorException(error);
+      handlePrismaClientKnownRequestError(error);
     }
   }
 }
