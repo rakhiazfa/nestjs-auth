@@ -9,7 +9,9 @@ export function handlePrismaClientKnownRequestError(error) {
   if (error instanceof PrismaClientKnownRequestError) {
     switch (error.code) {
       case 'P2002':
-        throw new BadRequestException('Email already exists.');
+        const column: string = (error?.meta?.target as string).split('_')[1];
+
+        throw new BadRequestException(`${column} already exists.`);
       case 'P2025':
         throw new NotFoundException(error.meta.cause);
       default:
