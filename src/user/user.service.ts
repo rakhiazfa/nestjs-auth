@@ -3,10 +3,9 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma, User } from '@prisma/client';
-import { PaginatorTypes, paginator } from '@nodeteam/nestjs-prisma-pagination';
+import { PaginatorTypes } from '@nodeteam/nestjs-prisma-pagination';
+import { paginate } from '@/common/helpers/paginate';
 import bcrypt from 'bcrypt';
-
-const paginate: PaginatorTypes.PaginateFunction = paginator({ perPage: 10 });
 
 @Injectable()
 export class UserService {

@@ -3,9 +3,8 @@ import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma, Role } from '@prisma/client';
-import { PaginatorTypes, paginator } from '@nodeteam/nestjs-prisma-pagination';
-
-const paginate: PaginatorTypes.PaginateFunction = paginator({ perPage: 10 });
+import { PaginatorTypes } from '@nodeteam/nestjs-prisma-pagination';
+import { paginate } from '@/common/helpers/paginate';
 
 @Injectable()
 export class RoleService {
