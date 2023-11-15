@@ -12,6 +12,7 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { SyncRolesDto } from './dto/sync-roles.dto';
 
 @Controller('users')
 export class UserController {
@@ -67,6 +68,19 @@ export class UserController {
 
     return {
       message: 'Successfully deleted user.',
+      user,
+    };
+  }
+
+  @Post(':id/sync-roles')
+  async syncRoles(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() syncRolesDto: SyncRolesDto,
+  ) {
+    const user = await this.userService.syncRoles(id, syncRolesDto);
+
+    return {
+      message: 'Successfully synchronized roles.',
       user,
     };
   }
