@@ -19,7 +19,7 @@ export class RoleController {
   @Get()
   async findAll(
     @Query('page') page: number = 1,
-    @Query('perPage') perPage: number = 5,
+    @Query('perPage') perPage: number = 15,
   ) {
     const roles = await this.roleService.findAll({
       orderBy: { id: 'desc' },

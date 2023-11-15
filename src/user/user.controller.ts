@@ -19,7 +19,7 @@ export class UserController {
   @Get()
   async findAll(
     @Query('page') page: number = 1,
-    @Query('perPage') perPage: number = 5,
+    @Query('perPage') perPage: number = 15,
   ) {
     const users = await this.userService.findAll({
       orderBy: { id: 'desc' },
