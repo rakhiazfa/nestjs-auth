@@ -114,7 +114,7 @@ export class UserService {
       },
     });
 
-    return user;
+    return new UserEntity(user);
   }
 
   async syncRoles(id: number, syncRolesDto: SyncRolesDto): Promise<UserEntity> {
