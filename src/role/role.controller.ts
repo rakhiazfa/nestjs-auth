@@ -42,7 +42,7 @@ export class RoleController {
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
+  async findById(@Param('id', ParseIntPipe) id: number) {
     const role = await this.roleService.findById(id);
 
     return { role };
