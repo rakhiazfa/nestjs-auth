@@ -46,9 +46,9 @@ model Permission {
 
 model UserHasRoles {
   id            Int     @id @default(autoincrement())
-  user          User    @relation(fields: [userId], references: [id])
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        Int
-  role          Role    @relation(fields: [roleId], references: [id])
+  role          Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
   roleId        Int
 
   @@map("user_has_roles")
@@ -56,9 +56,9 @@ model UserHasRoles {
 
 model RoleHasPermissions {
   id            Int          @id @default(autoincrement())
-  role          Role         @relation(fields: [roleId], references: [id])
+  role          Role         @relation(fields: [roleId], references: [id], onDelete: Cascade)
   roleId        Int
-  permission    Permission   @relation(fields: [permissionId], references: [id])
+  permission    Permission   @relation(fields: [permissionId], references: [id], onDelete: Cascade)
   permissionId  Int
 
   @@map("role_has_permissions")
