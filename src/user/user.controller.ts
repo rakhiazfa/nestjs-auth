@@ -7,6 +7,7 @@ import {
   Delete,
   Put,
   Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -41,15 +42,18 @@ export class UserController {
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string) {
-    const user = await this.userService.findById(+id);
+  async findById(@Param('id', ParseIntPipe) id: number) {
+    const user = await this.userService.findById(id);
 
     return { user };
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    const user = await this.userService.update(+id, updateUserDto);
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    const user = await this.userService.update(id, updateUserDto);
 
     return {
       message: 'Successfully updated user.',
@@ -58,8 +62,8 @@ export class UserController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    const user = await this.userService.remove(+id);
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    const user = await this.userService.remove(id);
 
     return {
       message: 'Successfully deleted user.',

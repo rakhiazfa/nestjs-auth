@@ -7,6 +7,7 @@ import {
   Delete,
   Put,
   Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { CreateRoleDto } from './dto/create-role.dto';
@@ -41,15 +42,18 @@ export class RoleController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const role = await this.roleService.findById(+id);
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const role = await this.roleService.findById(id);
 
     return { role };
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
-    const role = await this.roleService.update(+id, updateRoleDto);
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateRoleDto: UpdateRoleDto,
+  ) {
+    const role = await this.roleService.update(id, updateRoleDto);
 
     return {
       message: 'Successfully updated role.',
@@ -58,8 +62,8 @@ export class RoleController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    const role = await this.roleService.remove(+id);
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    const role = await this.roleService.remove(id);
 
     return {
       message: 'Successfully deleted role.',
