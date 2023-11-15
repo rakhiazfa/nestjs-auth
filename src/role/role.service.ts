@@ -1,10 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
-import { Prisma, Role } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
+import { Prisma, Role } from '@prisma/client';
 import { PaginatorTypes, paginator } from '@nodeteam/nestjs-prisma-pagination';
-import { handlePrismaClientKnownRequestError } from '@/common/helpers/handle-prisma-error';
 
 const paginate: PaginatorTypes.PaginateFunction = paginator({ perPage: 10 });
 
@@ -37,15 +36,11 @@ export class RoleService {
   }
 
   async create(createRoleDto: CreateRoleDto): Promise<Role> {
-    try {
-      return await this.prisma.role.create({
-        data: {
-          name: createRoleDto.name,
-        },
-      });
-    } catch (error) {
-      handlePrismaClientKnownRequestError(error);
-    }
+    return await this.prisma.role.create({
+      data: {
+        name: createRoleDto.name,
+      },
+    });
   }
 
   async findById(id: number): Promise<Role> {
@@ -73,30 +68,22 @@ export class RoleService {
   }
 
   async update(id: number, updateRoleDto: UpdateRoleDto): Promise<Role> {
-    try {
-      return await this.prisma.role.update({
-        where: {
-          id,
-        },
-        data: {
-          name: updateRoleDto.name,
-          updatedAt: new Date().toISOString(),
-        },
-      });
-    } catch (error) {
-      handlePrismaClientKnownRequestError(error);
-    }
+    return await this.prisma.role.update({
+      where: {
+        id,
+      },
+      data: {
+        name: updateRoleDto.name,
+        updatedAt: new Date().toISOString(),
+      },
+    });
   }
 
   async remove(id: number): Promise<Role> {
-    try {
-      return await this.prisma.role.delete({
-        where: {
-          id,
-        },
-      });
-    } catch (error) {
-      handlePrismaClientKnownRequestError(error);
-    }
+    return await this.prisma.role.delete({
+      where: {
+        id,
+      },
+    });
   }
 }

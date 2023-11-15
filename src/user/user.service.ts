@@ -2,11 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '@/prisma/prisma.service';
-import bcrypt from 'bcrypt';
-import { Prisma } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import { PaginatorTypes, paginator } from '@nodeteam/nestjs-prisma-pagination';
-import { User } from './entities/user.entity';
-import { handlePrismaClientKnownRequestError } from '@/common/helpers/handle-prisma-error';
+import bcrypt from 'bcrypt';
 
 const paginate: PaginatorTypes.PaginateFunction = paginator({ perPage: 10 });
 
@@ -39,26 +37,22 @@ export class UserService {
   }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    try {
-      const hash = await bcrypt.hash(
-        createUserDto.password,
-        await bcrypt.genSalt(15),
-      );
+    const hash = await bcrypt.hash(
+      createUserDto.password,
+      await bcrypt.genSalt(15),
+    );
 
-      const user = await this.prisma.user.create({
-        data: {
-          name: createUserDto.name,
-          email: createUserDto.email,
-          password: hash,
-        },
-      });
+    const user = await this.prisma.user.create({
+      data: {
+        name: createUserDto.name,
+        email: createUserDto.email,
+        password: hash,
+      },
+    });
 
-      delete user.password;
+    delete user.password;
 
-      return user;
-    } catch (error) {
-      handlePrismaClientKnownRequestError(error);
-    }
+    return user;
   }
 
   async findById(id: number): Promise<User> {
@@ -118,39 +112,31 @@ export class UserService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    try {
-      const user = await this.prisma.user.update({
-        where: {
-          id,
-        },
-        data: {
-          name: updateUserDto.name,
-          email: updateUserDto.email,
-          isActive: updateUserDto.isActive,
-        },
-      });
+    const user = await this.prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        name: updateUserDto.name,
+        email: updateUserDto.email,
+        isActive: updateUserDto.isActive,
+      },
+    });
 
-      delete user.password;
+    delete user.password;
 
-      return user;
-    } catch (error) {
-      handlePrismaClientKnownRequestError(error);
-    }
+    return user;
   }
 
   async remove(id: number): Promise<User> {
-    try {
-      const user = await this.prisma.user.delete({
-        where: {
-          id,
-        },
-      });
+    const user = await this.prisma.user.delete({
+      where: {
+        id,
+      },
+    });
 
-      delete user.password;
+    delete user.password;
 
-      return user;
-    } catch (error) {
-      handlePrismaClientKnownRequestError(error);
-    }
+    return user;
   }
 }
