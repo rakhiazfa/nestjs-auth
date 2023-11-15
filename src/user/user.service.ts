@@ -2,10 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Prisma, User } from '@prisma/client';
+import { User } from '@prisma/client';
 import { PaginatorTypes } from '@nodeteam/nestjs-prisma-pagination';
 import { paginate } from '@/common/helpers/paginate';
 import bcrypt from 'bcrypt';
+import { PaginationRequest } from '@/common/types/pagination-request.type';
 
 @Injectable()
 export class UserService {
@@ -16,12 +17,7 @@ export class UserService {
     orderBy,
     page,
     perPage,
-  }: {
-    where?: Prisma.UserWhereInput;
-    orderBy?: Prisma.UserOrderByWithRelationInput;
-    page?: number;
-    perPage?: number;
-  }): Promise<PaginatorTypes.PaginatedResult<User>> {
+  }: PaginationRequest): Promise<PaginatorTypes.PaginatedResult<User>> {
     return paginate(
       this.prisma.user,
       {

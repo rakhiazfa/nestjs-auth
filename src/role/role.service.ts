@@ -2,9 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Prisma, Role } from '@prisma/client';
+import { Role } from '@prisma/client';
 import { PaginatorTypes } from '@nodeteam/nestjs-prisma-pagination';
 import { paginate } from '@/common/helpers/paginate';
+import { PaginationRequest } from '@/common/types/pagination-request.type';
 
 @Injectable()
 export class RoleService {
@@ -15,12 +16,7 @@ export class RoleService {
     orderBy,
     page,
     perPage,
-  }: {
-    where?: Prisma.UserWhereInput;
-    orderBy?: Prisma.UserOrderByWithRelationInput;
-    page?: number;
-    perPage?: number;
-  }): Promise<PaginatorTypes.PaginatedResult<Role>> {
+  }: PaginationRequest): Promise<PaginatorTypes.PaginatedResult<Role>> {
     return paginate(
       this.prisma.role,
       {
