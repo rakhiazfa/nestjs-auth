@@ -1,19 +1,13 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '@/prisma/prisma.service';
+import { PaginatorTypes } from '@nodeteam/nestjs-prisma-pagination';
+import { paginate } from '@/common/helpers/paginate';
 import bcrypt from 'bcrypt';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { Prisma } from '@prisma/client';
-import { PaginatorTypes, paginator } from '@nodeteam/nestjs-prisma-pagination';
-import { User } from './entities/user.entity';
-
-const paginate: PaginatorTypes.PaginateFunction = paginator({ perPage: 10 });
+import { PaginationRequest } from '@/common/types/pagination-request.type';
+import { SyncRolesDto } from './dto/sync-roles.dto';
+import { UserEntity } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
@@ -24,13 +18,8 @@ export class UserService {
     orderBy,
     page,
     perPage,
-  }: {
-    where?: Prisma.UserWhereInput;
-    orderBy?: Prisma.UserOrderByWithRelationInput;
-    page?: number;
-    perPage?: number;
-  }): Promise<PaginatorTypes.PaginatedResult<User>> {
-    return paginate(
+  }: PaginationRequest): Promise<PaginatorTypes.PaginatedResult<UserEntity>> {
+    const result = (await paginate(
       this.prisma.user,
       {
         where,
@@ -40,33 +29,31 @@ export class UserService {
         page,
         perPage,
       },
+    )) as PaginatorTypes.PaginatedResult<UserEntity>;
+
+    result.data = result.data.map((user) => new UserEntity(user));
+
+    return result;
+  }
+
+  async create(createUserDto: CreateUserDto): Promise<UserEntity> {
+    const hash = await bcrypt.hash(
+      createUserDto.password,
+      await bcrypt.genSalt(15),
     );
+
+    const user = await this.prisma.user.create({
+      data: {
+        name: createUserDto.name,
+        email: createUserDto.email,
+        password: hash,
+      },
+    });
+
+    return new UserEntity(user);
   }
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    try {
-      const hash = await bcrypt.hash(
-        createUserDto.password,
-        await bcrypt.genSalt(15),
-      );
-
-      const user = await this.prisma.user.create({
-        data: {
-          name: createUserDto.name,
-          email: createUserDto.email,
-          password: hash,
-        },
-      });
-
-      delete user.password;
-
-      return user;
-    } catch (error) {
-      this.handlePrismaClientKnownRequestError(error);
-    }
-  }
-
-  async findById(id: number): Promise<User> {
+  async findById(id: number): Promise<UserEntity> {
     const user = await this.prisma.user.findUnique({
       include: {
         roles: {
@@ -82,19 +69,10 @@ export class UserService {
 
     if (!user) throw new NotFoundException('User not found.');
 
-    delete user.password;
-
-    const result = {
-      ...user,
-      roles: user.roles.map((role) => {
-        return role?.role?.name;
-      }),
-    };
-
-    return result;
+    return new UserEntity(user);
   }
 
-  async findByEmail(email: string): Promise<User> {
+  async findByEmail(email: string): Promise<UserEntity> {
     const user = await this.prisma.user.findUnique({
       include: {
         roles: {
@@ -110,67 +88,62 @@ export class UserService {
 
     if (!user) throw new NotFoundException('User not found.');
 
-    delete user.password;
-
-    const result = {
-      ...user,
-      roles: user.roles.map((role) => {
-        return role?.role?.name;
-      }),
-    };
-
-    return result;
+    return new UserEntity(user);
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    try {
-      const user = await this.prisma.user.update({
-        where: {
-          id,
-        },
-        data: {
-          name: updateUserDto.name,
-          email: updateUserDto.email,
-          isActive: updateUserDto.isActive,
-        },
-      });
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {
+    const user = await this.prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        name: updateUserDto.name,
+        email: updateUserDto.email,
+        isActive: updateUserDto.isActive,
+        updatedAt: new Date().toISOString(),
+      },
+    });
 
-      delete user.password;
-
-      return user;
-    } catch (error) {
-      this.handlePrismaClientKnownRequestError(error);
-    }
+    return new UserEntity(user);
   }
 
-  async remove(id: number): Promise<User> {
-    try {
-      const user = await this.prisma.user.delete({
-        where: {
-          id,
-        },
-      });
+  async remove(id: number): Promise<UserEntity> {
+    const user = await this.prisma.user.delete({
+      where: {
+        id,
+      },
+    });
 
-      delete user.password;
-
-      return user;
-    } catch (error) {
-      this.handlePrismaClientKnownRequestError(error);
-    }
+    return new UserEntity(user);
   }
 
-  private handlePrismaClientKnownRequestError(error) {
-    if (error instanceof PrismaClientKnownRequestError) {
-      switch (error.code) {
-        case 'P2002':
-          throw new BadRequestException('Email already exists.');
-        case 'P2025':
-          throw new NotFoundException(error.meta.cause);
-        default:
-          throw new InternalServerErrorException(error);
-      }
-    } else {
-      throw new InternalServerErrorException(error);
-    }
+  async syncRoles(id: number, syncRolesDto: SyncRolesDto): Promise<UserEntity> {
+    await this.prisma.userHasRoles.deleteMany({
+      where: {
+        userId: id,
+      },
+    });
+
+    const user = await this.prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        roles: {
+          create: syncRolesDto.roles?.map((id) => ({
+            role: { connect: { id } },
+          })),
+        },
+      },
+      include: {
+        roles: {
+          select: {
+            role: true,
+          },
+        },
+      },
+    });
+
+    return new UserEntity(user);
   }
 }

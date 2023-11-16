@@ -1,10 +1,18 @@
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  ClassSerializerInterceptor,
+  ValidationPipe,
+} from '@nestjs/common';
+import { PrismaClientExceptionFilter } from './common/exceptions/prisma-client-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const { httpAdapter } = app.get(HttpAdapterHost);
+
+  app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -20,6 +28,8 @@ async function bootstrap() {
       },
     }),
   );
+
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   await app.listen(process.env.APP_PORT || 5000);
 }

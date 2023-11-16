@@ -1,20 +1,17 @@
-import { Exclude, Transform } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import moment from 'moment';
 
-export class UserEntity {
+export class RoleEntity {
   id: number;
   name: string;
-  email: string;
-
-  @Exclude()
-  password: string;
-
-  isActive: boolean;
 
   @Transform(({ value }) =>
-    value.map((item) => ({ id: item?.role?.id, name: item?.role?.name })),
+    value.map((item) => ({
+      id: item?.permission?.id,
+      name: item?.permission?.name,
+    })),
   )
-  roles?: any;
+  permissions?: any;
 
   @Transform(({ value }) => moment(value).format('DD/MM/YYYY HH:mm:ss'))
   createdAt: Date;
@@ -22,7 +19,7 @@ export class UserEntity {
   @Transform(({ value }) => moment(value).format('DD/MM/YYYY HH:mm:ss'))
   updatedAt: Date;
 
-  constructor(partial: Partial<UserEntity>) {
+  constructor(partial: Partial<RoleEntity>) {
     Object.assign(this, partial);
   }
 }
