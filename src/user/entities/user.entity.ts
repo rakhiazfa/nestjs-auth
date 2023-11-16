@@ -11,6 +11,9 @@ export class UserEntity {
 
   isActive: boolean;
 
+  @Exclude()
+  refreshToken: string;
+
   @Transform(({ value }) =>
     value.map((item) => ({ id: item?.role?.id, name: item?.role?.name })),
   )
