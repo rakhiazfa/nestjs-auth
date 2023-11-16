@@ -1,4 +1,5 @@
 import { Exclude, Transform } from 'class-transformer';
+import moment from 'moment';
 
 export class UserEntity {
   id: number;
@@ -15,7 +16,10 @@ export class UserEntity {
   )
   roles?: any;
 
+  @Transform(({ value }) => moment(value).format('DD/MM/YYYY HH:mm:ss'))
   createdAt: Date;
+
+  @Transform(({ value }) => moment(value).format('DD/MM/YYYY HH:mm:ss'))
   updatedAt: Date;
 
   constructor(partial: Partial<UserEntity>) {
