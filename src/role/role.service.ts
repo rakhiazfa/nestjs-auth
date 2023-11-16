@@ -2,10 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Role } from '@prisma/client';
 import { PaginatorTypes } from '@nodeteam/nestjs-prisma-pagination';
 import { paginate } from '@/common/helpers/paginate';
 import { PaginationRequest } from '@/common/types/pagination-request.type';
+import { RoleEntity } from './entities/role.entity';
 
 @Injectable()
 export class RoleService {
@@ -16,8 +16,8 @@ export class RoleService {
     orderBy,
     page,
     perPage,
-  }: PaginationRequest): Promise<PaginatorTypes.PaginatedResult<Role>> {
-    return paginate(
+  }: PaginationRequest): Promise<PaginatorTypes.PaginatedResult<RoleEntity>> {
+    const result = (await paginate(
       this.prisma.role,
       {
         where,
@@ -27,22 +27,28 @@ export class RoleService {
         page,
         perPage,
       },
-    );
+    )) as PaginatorTypes.PaginatedResult<RoleEntity>;
+
+    result.data = result.data.map((role) => new RoleEntity(role));
+
+    return result;
   }
 
-  async create(createRoleDto: CreateRoleDto): Promise<Role> {
-    return await this.prisma.role.create({
+  async create(createRoleDto: CreateRoleDto): Promise<RoleEntity> {
+    const role = await this.prisma.role.create({
       data: {
         name: createRoleDto.name,
       },
     });
+
+    return new RoleEntity(role);
   }
 
-  async findById(id: number): Promise<Role> {
+  async findById(id: number): Promise<RoleEntity> {
     const role = await this.prisma.role.findUnique({
       include: {
         permissions: {
-          select: { permission: { select: { name: true } } },
+          select: { permission: true },
         },
       },
       where: {
@@ -52,18 +58,11 @@ export class RoleService {
 
     if (!role) throw new NotFoundException('Role not found.');
 
-    const result = {
-      ...role,
-      permissions: role.permissions.map(
-        (permission) => permission?.permission?.name,
-      ),
-    };
-
-    return result;
+    return new RoleEntity(role);
   }
 
-  async update(id: number, updateRoleDto: UpdateRoleDto): Promise<Role> {
-    return await this.prisma.role.update({
+  async update(id: number, updateRoleDto: UpdateRoleDto): Promise<RoleEntity> {
+    const role = await this.prisma.role.update({
       where: {
         id,
       },
@@ -72,13 +71,17 @@ export class RoleService {
         updatedAt: new Date().toISOString(),
       },
     });
+
+    return new RoleEntity(role);
   }
 
-  async remove(id: number): Promise<Role> {
-    return await this.prisma.role.delete({
+  async remove(id: number): Promise<RoleEntity> {
+    const role = await this.prisma.role.delete({
       where: {
         id,
       },
     });
+
+    return new RoleEntity(role);
   }
 }
