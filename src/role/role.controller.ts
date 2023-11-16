@@ -12,6 +12,7 @@ import {
 import { RoleService } from './role.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { SyncPermissionsDto } from './dto/sync-permissions.dto';
 
 @Controller('roles')
 export class RoleController {
@@ -67,6 +68,19 @@ export class RoleController {
 
     return {
       message: 'Successfully deleted role.',
+      role,
+    };
+  }
+
+  @Post(':id/sync-permissions')
+  async syncPermissions(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() syncPermissionsDto: SyncPermissionsDto,
+  ) {
+    const role = await this.roleService.syncPermissions(id, syncPermissionsDto);
+
+    return {
+      message: 'Successfully synchronized permissions.',
       role,
     };
   }

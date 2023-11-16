@@ -6,6 +6,7 @@ import { PaginatorTypes } from '@nodeteam/nestjs-prisma-pagination';
 import { paginate } from '@/common/helpers/paginate';
 import { PaginationRequest } from '@/common/types/pagination-request.type';
 import { RoleEntity } from './entities/role.entity';
+import { SyncPermissionsDto } from './dto/sync-permissions.dto';
 
 @Injectable()
 export class RoleService {
@@ -48,7 +49,9 @@ export class RoleService {
     const role = await this.prisma.role.findUnique({
       include: {
         permissions: {
-          select: { permission: true },
+          select: {
+            permission: true,
+          },
         },
       },
       where: {
@@ -79,6 +82,39 @@ export class RoleService {
     const role = await this.prisma.role.delete({
       where: {
         id,
+      },
+    });
+
+    return new RoleEntity(role);
+  }
+
+  async syncPermissions(
+    id: number,
+    syncPermissionsDto: SyncPermissionsDto,
+  ): Promise<RoleEntity> {
+    await this.prisma.roleHasPermissions.deleteMany({
+      where: {
+        roleId: id,
+      },
+    });
+
+    const role = await this.prisma.role.update({
+      where: {
+        id,
+      },
+      data: {
+        permissions: {
+          create: syncPermissionsDto.permissions?.map((id) => ({
+            permission: { connect: { id } },
+          })),
+        },
+      },
+      include: {
+        permissions: {
+          select: {
+            permission: true,
+          },
+        },
       },
     });
 
