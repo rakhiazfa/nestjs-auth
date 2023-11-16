@@ -86,9 +86,7 @@ export class UserService {
       },
     });
 
-    if (!user) throw new NotFoundException('User not found.');
-
-    return new UserEntity(user);
+    return user;
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {
