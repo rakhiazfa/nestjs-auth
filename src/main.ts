@@ -7,10 +7,13 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { PrismaClientExceptionFilter } from './common/exceptions/prisma-client-exception.filter';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const { httpAdapter } = app.get(HttpAdapterHost);
+
+  app.use(cookieParser());
 
   app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
 
